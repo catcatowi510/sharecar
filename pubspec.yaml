@@ -37,6 +37,10 @@ dependencies:
   cupertino_icons: ^1.0.8
   hive_flutter: ^1.1.0
   http:
+  carousel_slider: ^5.0.0
+  smooth_page_indicator: ^1.2.1
+  intl: ^0.20.2
+  flutter_localization: ^0.3.3
 
 dev_dependencies:
   flutter_test:

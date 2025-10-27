@@ -3,6 +3,7 @@ import 'home_screen.dart';
 import 'history.dart';
 import 'account.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() async {
   await _initHive();
@@ -28,6 +29,18 @@ class ShareCarApp extends StatelessWidget {
         primaryColor: const Color(0xFFFF8C00),
         fontFamily: 'Roboto',
       ),
+
+      // Thêm cấu hình ngôn ngữ để Flutter có thể tạo MaterialLocalizations
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('vi', 'VN'), // Tiếng Việt
+        Locale('en', 'US'), // Tiếng Anh (fallback)
+      ],
+
       home: const LoginScreen(),
     );
   }
@@ -55,7 +68,7 @@ class _LoginState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     if (_boxLogin.get("loginStatus") ?? false) {
-      return HomeScreen();
+      return MainScreen();
     }
     return Scaffold(
       body: Stack(
@@ -615,16 +628,16 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int pageIndex = 0;
-  final pages = [
-    const HomeScreen(),
-    const HistoryScreen(),
-    const AccountScreen(),
+
+  final pages = const [
+    HomeScreen(),
+    HistoryScreen(),
+    AccountScreen(),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // backgroundColor: const Color(0xffC4DFCB),
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: const Color(0xFFFF8C00),
@@ -641,34 +654,20 @@ class _MainScreenState extends State<MainScreen> {
             ),
           ],
         ),
-        // actions: const [
-        //   Padding(
-        //     padding: EdgeInsets.symmetric(horizontal: 16),
-        //     child: Row(
-        //       children: [
-        //         Text("Trang chủ", style: TextStyle(color: Colors.white)),
-        //         SizedBox(width: 16),
-        //         Text("Dịch vụ", style: TextStyle(color: Colors.white)),
-        //         SizedBox(width: 16),
-        //         Text("Điểm đến", style: TextStyle(color: Colors.white)),
-        //         SizedBox(width: 16),
-        //         Text("Kết nối", style: TextStyle(color: Colors.white)),
-        //         SizedBox(width: 16),
-        //         Text("Tài khoản", style: TextStyle(color: Colors.white)),
-        //       ],
-        //     ),
-        //   ),
-        // ],
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: pages[pageIndex],
+        // Giữ trạng thái của từng trang
+        child: IndexedStack(
+          index: pageIndex,
+          children: pages,
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: pageIndex,
         onTap: (value) => setState(() => pageIndex = value),
-        items: const <BottomNavigationBarItem>[
+        selectedItemColor: Colors.orange,
+        unselectedItemColor: Colors.grey,
+        items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.history), label: 'Lịch Sử'),
           BottomNavigationBarItem(
@@ -676,7 +675,6 @@ class _MainScreenState extends State<MainScreen> {
             label: 'Tài Khoản',
           ),
         ],
-        // ... more configuration
       ),
     );
   }
