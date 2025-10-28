@@ -3,6 +3,7 @@ import 'home_screen.dart';
 import 'history.dart';
 import 'account.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+// ignore: depend_on_referenced_packages
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() async {
@@ -629,11 +630,7 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int pageIndex = 0;
 
-  final pages = const [
-    HomeScreen(),
-    HistoryScreen(),
-    AccountScreen(),
-  ];
+  final pages = const [HomeScreen(), HistoryScreen(), AccountScreen()];
 
   @override
   Widget build(BuildContext context) {
@@ -641,26 +638,12 @@ class _MainScreenState extends State<MainScreen> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: const Color(0xFFFF8C00),
-        title: Row(
-          children: [
-            Image.asset('assets/images/logo.png', height: 36),
-            const SizedBox(width: 8),
-            const Text(
-              "SHARE CAR",
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
+        centerTitle: true, // 👉 căn giữa tiêu đề
+        title: Image.asset('assets/images/logo.png', height: 40),
       ),
       body: SafeArea(
         // Giữ trạng thái của từng trang
-        child: IndexedStack(
-          index: pageIndex,
-          children: pages,
-        ),
+        child: IndexedStack(index: pageIndex, children: pages),
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: pageIndex,

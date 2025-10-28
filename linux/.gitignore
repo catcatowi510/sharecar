@@ -1,1 +1,75 @@
 flutter/ephemeral
+# Flutter/Dart/Pub related
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+build/
+flutter_*.png
+*.iml
+*.lock
+*.log
+
+# IDEs and editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*.bak
+
+# Android related
+android/.gradle/
+android/app/build/
+android/local.properties
+android/key.properties
+android/.idea/
+*.keystore
+*.jks
+
+# iOS related
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Flutter/Generated.xcconfig
+ios/Flutter/ephemeral/
+ios/Runner.xcworkspace/
+ios/DerivedData/
+ios/.generated/
+ios/.idea/
+
+# macOS related
+macos/Flutter/ephemeral/
+macos/DerivedData/
+
+# Windows related
+windows/Flutter/ephemeral/
+windows/Runner/Runner.exe
+
+# Linux related
+linux/Flutter/ephemeral/
+
+# Web related
+web/.dart_tool/
+web/build/
+
+# Environment / Credentials
+.env
+*.env
+firebase_options.dart
+
+# Others
+coverage/
+*.tmp
+*.temp
+*.DS_Store
+*.class
+*.pyc
+*.so
+*.dll
+*.exe
+*.log
+*.bak
+*.swp
+*.swo
+*.old

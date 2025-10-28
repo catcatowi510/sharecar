@@ -41,6 +41,8 @@ dependencies:
   smooth_page_indicator: ^1.2.1
   intl: ^0.20.2
   flutter_localization: ^0.3.3
+  flutter_launcher_icons: ^0.14.4
+  package_info_plus: ^9.0.0
 
 dev_dependencies:
   flutter_test:
@@ -95,3 +97,9 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/icons/app_icon.png"
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/icons/app_icon.png"
