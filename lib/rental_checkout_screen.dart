@@ -22,8 +22,8 @@ class _RentalCheckoutScreenState extends State<RentalCheckoutScreen> {
   double get totalCost {
     if (startDate == null || endDate == null) return 0;
     int days = endDate!.difference(startDate!).inDays + 1;
-    double pricePerHour = widget.car.priceHour.toDouble();
-    double base = pricePerHour * 24 * days;
+    double pricePerDay = widget.car.pricePerDay.toDouble();
+    double base = pricePerDay * days;
     double vat = base * 0.1;
     double deposit = 10000000;
     return base + vat + deposit;
@@ -85,7 +85,7 @@ class _RentalCheckoutScreenState extends State<RentalCheckoutScreen> {
             ),
             const SizedBox(height: 10),
             Text(
-              'Giá thuê: ${formatCurrency.format(car.priceHour)}đ/giờ',
+              'Giá thuê: ${formatCurrency.format(car.pricePerDay)}đ/ngày',
               style: const TextStyle(fontSize: 16, color: Colors.orange),
             ),
             const SizedBox(height: 24),

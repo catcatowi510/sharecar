@@ -75,10 +75,10 @@ class _CarDetailScreenState extends State<CarDetailScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // 🎞 Banner ảnh chi tiết xe
-                      if (car!.images.isNotEmpty)
-                        _buildImageCarousel(car!.images)
+                      if (car!.imageUrl.isNotEmpty)
+                        _buildImageCarousel(car!.imageDetails)
                       else
-                        _buildSingleImage(car!.image),
+                        _buildSingleImage(car!.imageUrl),
 
                       // 🧾 Thông tin chi tiết xe
                       Padding(
@@ -95,7 +95,7 @@ class _CarDetailScreenState extends State<CarDetailScreen> {
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              "Giá thuê: ${car!.priceHour}đ/giờ",
+                              "Giá thuê: ${car!.pricePerDay}đ/ngày",
                               style: const TextStyle(
                                 color: Colors.orange,
                                 fontSize: 16,

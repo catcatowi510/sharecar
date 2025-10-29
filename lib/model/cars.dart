@@ -1,47 +1,46 @@
 class Cars {
   final String id;
   final String name;
-  final String image;
-  final List<String> images;
-  final int priceHour;
-  final int priceDay;
-  final int priceMonth;
+  final String imageUrl;
+  final List<String> imageDetails; // 🆕
+  final int pricePerDay;
   final String description;
+  final bool available;
   final int seat;
-  final String type;
-  final String fuel;
+  final String? type;
+  final String? fuel;
+  final int quantity;
+  final int? discount;
 
   Cars({
     required this.id,
     required this.name,
-    required this.image,
-    required this.images,
-    required this.priceHour,
-    required this.priceDay,
-    required this.priceMonth,
+    required this.imageUrl,
+    required this.imageDetails,
+    required this.pricePerDay,
     required this.description,
+    required this.available,
     required this.seat,
-    required this.type,
-    required this.fuel,
+    this.type,
+    this.fuel,
+    required this.quantity,
+    this.discount,
   });
 
   factory Cars.fromMap(Map<String, dynamic> json) {
     return Cars(
-      id: json['id'].toString(),
-      name: json['name'] ?? 'Chưa có tên',
-      image: json['image'] ?? '',
-      images: (json['images'] != null)
-          ? List<String>.from(json['images'])
-          : [], // parse mảng ảnh chi tiết
-      priceHour: int.tryParse(json['price_hour'].toString()) ?? 0,
-      priceDay: int.tryParse(json['price_day'].toString()) ?? 0,
-      priceMonth: int.tryParse(json['price_month'].toString()) ?? 0,
+      id: json['_id'] ?? '',
+      name: json['name'] ?? '',
+      imageUrl: json['imageUrl'] ?? '',
+      imageDetails: List<String>.from(json['imageDetails'] ?? []),
+      pricePerDay: json['pricePerDay'] ?? 0,
       description: json['description'] ?? '',
-      seat: int.tryParse(json['seat'].toString()) ?? 0,
-      type: json['type'] ?? 'Không rõ',
-      fuel: json['fuel'] ?? 'Không rõ',
+      available: json['available'] ?? true,
+      seat: json['seat'] ?? 0,
+      type: json['type'],
+      fuel: json['fuel'],
+      quantity: json['quantity'] ?? 0,
+      discount: json['discount'] ?? 0,
     );
   }
-
-  factory Cars.fromJson(Map<String, dynamic> json) => Cars.fromMap(json);
 }

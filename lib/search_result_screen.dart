@@ -61,7 +61,7 @@ class _SearchResultScreenState extends State<SearchResultScreen> {
     setState(() {
       filteredCars = allCars.where((car) {
         return car.name.toLowerCase().contains(lowerQuery) ||
-            (car.type.toLowerCase().contains(lowerQuery));
+            (car.type!.toLowerCase().contains(lowerQuery));
       }).toList();
     });
   }
@@ -98,12 +98,12 @@ class _SearchResultScreenState extends State<SearchResultScreen> {
                         ),
                         items: const [
                           DropdownMenuItem(
-                            value: 'Hà Nội',
-                            child: Text('Hà Nội'),
-                          ),
-                          DropdownMenuItem(
                             value: 'TP.HCM',
                             child: Text('TP. Hồ Chí Minh'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'Hà Nội',
+                            child: Text('Hà Nội'),
                           ),
                           DropdownMenuItem(
                             value: 'Đà Nẵng',
@@ -266,7 +266,7 @@ class _SearchResultScreenState extends State<SearchResultScreen> {
                                 left: Radius.circular(12),
                               ),
                               child: Image.network(
-                                car.image,
+                                car.imageUrl,
                                 width: 120,
                                 height: 90,
                                 fit: BoxFit.cover,
@@ -287,7 +287,7 @@ class _SearchResultScreenState extends State<SearchResultScreen> {
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
-                                      "Giá: ${car.priceHour}/giờ",
+                                      "Giá: ${car.pricePerDay}/ngày",
                                       style: const TextStyle(
                                         color: Colors.orange,
                                         fontSize: 14,
