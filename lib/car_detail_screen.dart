@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'rental_checkout_screen.dart';
 import 'model/cars.dart';
+import 'services/api_service.dart';
+import 'rental_checkout_screen.dart';
+import 'package:intl/intl.dart';
 
 class CarDetailScreen extends StatefulWidget {
   final String carId;
@@ -22,40 +22,35 @@ class _CarDetailScreenState extends State<CarDetailScreen> {
   @override
   void initState() {
     super.initState();
-    fetchCarDetail();
+    _loadCarDetail();
   }
 
-  Future<void> fetchCarDetail() async {
+  /// 🔹 Gọi API lấy chi tiết xe theo ID
+  Future<void> _loadCarDetail() async {
     try {
-      final response = await http.get(
-        Uri.parse(
-          'https://68f38e35fd14a9fcc4291b81.mockapi.io/share_cars/api/v1/cars/${widget.carId}',
-        ),
-      );
-
-      if (response.statusCode == 200) {
-        final jsonData = json.decode(response.body);
+      final data = await ApiService.getCarById(widget.carId);
+      if (data != null) {
         setState(() {
-          car = Cars.fromMap(jsonData);
+          car = data;
           isLoading = false;
         });
       } else {
-        throw Exception('Failed to load car detail');
+        setState(() {
+          hasError = true;
+          isLoading = false;
+        });
       }
     } catch (e) {
       setState(() {
-        isLoading = false;
         hasError = true;
+        isLoading = false;
       });
     }
   }
 
-  bool _isNetworkImage(String path) {
-    return path.startsWith('http') || path.startsWith('https');
-  }
-
   @override
   Widget build(BuildContext context) {
+  final currencyFormatter = NumberFormat.currency(locale: 'vi_VN', symbol: 'VNĐ');
     return Scaffold(
       appBar: AppBar(
         title: Text(car?.name ?? 'Chi tiết xe'),
@@ -63,7 +58,7 @@ class _CarDetailScreenState extends State<CarDetailScreen> {
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator(color: Colors.orange))
-          : hasError
+          : hasError || car == null
               ? const Center(
                   child: Text(
                     'Không thể tải thông tin xe.',
@@ -75,7 +70,7 @@ class _CarDetailScreenState extends State<CarDetailScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // 🎞 Banner ảnh chi tiết xe
-                      if (car!.imageUrl.isNotEmpty)
+                      if (car!.imageDetails.isNotEmpty)
                         _buildImageCarousel(car!.imageDetails)
                       else
                         _buildSingleImage(car!.imageUrl),
@@ -95,7 +90,7 @@ class _CarDetailScreenState extends State<CarDetailScreen> {
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              "Giá thuê: ${car!.pricePerDay}đ/ngày",
+                              "Giá thuê: ${currencyFormatter.format(car!.pricePerDay)}/ngày",
                               style: const TextStyle(
                                 color: Colors.orange,
                                 fontSize: 16,
@@ -162,7 +157,8 @@ class _CarDetailScreenState extends State<CarDetailScreen> {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => RentalCheckoutScreen(car: car!),
+                                      builder: (context) =>
+                                          RentalCheckoutScreen(car: car!),
                                     ),
                                   );
                                 },
@@ -256,9 +252,15 @@ class _CarDetailScreenState extends State<CarDetailScreen> {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16),
         child: _isNetworkImage(img)
-            ? Image.network(img, fit: BoxFit.cover, width: double.infinity, height: 250)
-            : Image.asset(img, fit: BoxFit.cover, width: double.infinity, height: 250),
+            ? Image.network(img,
+                fit: BoxFit.cover, width: double.infinity, height: 250)
+            : Image.asset(img,
+                fit: BoxFit.cover, width: double.infinity, height: 250),
       ),
     );
+  }
+
+  bool _isNetworkImage(String path) {
+    return path.startsWith('http');
   }
 }

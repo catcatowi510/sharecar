@@ -1,8 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'model/cars.dart';
 import 'car_detail_screen.dart';
+import 'services/api_service.dart';
+import 'package:intl/intl.dart';
+
+Future<List<Cars>> fetchCars() async {
+  try {
+    final response = await ApiService.getCars();
+    return response;
+  } catch (e) {
+    return [];
+  }
+}
 
 class SearchResultScreen extends StatefulWidget {
   final String location;
@@ -22,52 +31,19 @@ class SearchResultScreen extends StatefulWidget {
 
 class _SearchResultScreenState extends State<SearchResultScreen> {
   late Future<List<Cars>> futureCars;
-  List<Cars> allCars = [];
-  List<Cars> filteredCars = [];
-
-  // 📡 Lấy dữ liệu xe
-  Future<List<Cars>> fetchCars() async {
-    final response = await http.get(
-      Uri.parse(
-        'https://68f38e35fd14a9fcc4291b81.mockapi.io/share_cars/api/v1/cars',
-      ),
-    );
-
-    if (response.statusCode == 200) {
-      List<dynamic> jsonList = json.decode(response.body);
-      return jsonList
-          .map((json) => Cars.fromMap(json as Map<String, dynamic>))
-          .toList();
-    } else {
-      throw Exception('Failed to load cars');
-    }
-  }
 
   @override
   void initState() {
     super.initState();
     futureCars = fetchCars();
-    futureCars.then((cars) {
-      setState(() {
-        allCars = cars;
-        filteredCars = cars;
-      });
-    });
-  }
-
-  // 🔍 Hàm lọc xe theo tên hoặc hãng
-  void filterCars(String query) {
-    final lowerQuery = query.toLowerCase();
-    setState(() {
-      filteredCars = allCars.where((car) {
-        return car.name.toLowerCase().contains(lowerQuery) ||
-            (car.type!.toLowerCase().contains(lowerQuery));
-      }).toList();
-    });
   }
 
   @override
   Widget build(BuildContext context) {
+    final currencyFormatter = NumberFormat.currency(
+      locale: 'vi_VN',
+      symbol: 'VNĐ',
+    );
     return Scaffold(
       appBar: AppBar(
         title: Text('Kết quả tìm kiếm - ${widget.location}'),
@@ -231,25 +207,31 @@ class _SearchResultScreenState extends State<SearchResultScreen> {
             child: FutureBuilder<List<Cars>>(
               future: futureCars,
               builder: (context, snapshot) {
+                // Handling different connection states
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 } else if (snapshot.hasError) {
                   return Center(child: Text('Lỗi: ${snapshot.error}'));
-                } else if (filteredCars.isEmpty) {
+                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  // Check if data is null or empty
                   return const Center(child: Text('Không tìm thấy xe phù hợp'));
                 }
 
+                // Successfully fetched data
+                final cars = snapshot.data!;
+
                 return ListView.builder(
-                  itemCount: filteredCars.length,
+                  itemCount: cars.length,
                   padding: const EdgeInsets.all(12),
                   itemBuilder: (context, index) {
-                    final car = filteredCars[index];
+                    final car = cars[index];
                     return GestureDetector(
                       onTap: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => CarDetailScreen(carId: car.id),
+                            builder: (context) =>
+                                CarDetailScreen(carId: car.id),
                           ),
                         );
                       },
@@ -287,7 +269,7 @@ class _SearchResultScreenState extends State<SearchResultScreen> {
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
-                                      "Giá: ${car.pricePerDay}/ngày",
+                                      "Giá: ${currencyFormatter.format(car.pricePerDay)}/ngày",
                                       style: const TextStyle(
                                         color: Colors.orange,
                                         fontSize: 14,

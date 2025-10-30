@@ -4,13 +4,13 @@ import 'car_detail_screen.dart';
 import 'model/cars.dart';
 import 'search_result_screen.dart';
 import 'services/api_service.dart';
+import 'package:intl/intl.dart';
 
 Future<List<Cars>> fetchCars() async {
   try {
     final response = await ApiService.getCars();
     return response;
   } catch (e) {
-    print("❌ Lỗi khi tải danh sách xe: $e");
     return [];
   }
 }
@@ -20,28 +20,28 @@ Future<List<Cars>> fetchLatestCars() async {
     final response = await ApiService.getLatestCars();
     return response;
   } catch (e) {
-    print("❌ Lỗi khi tải danh sách xe mới nhất: $e");
     return [];
   }
 }
+
 Future<List<Cars>> fetchFavoriteCars() async {
   try {
     final response = await ApiService.getFavoriteCars();
     return response;
   } catch (e) {
-    print("❌ Lỗi khi tải danh sách xe ưu thích: $e");
     return [];
   }
 }
+
 Future<List<Cars>> fetchDiscountedCars() async {
   try {
     final response = await ApiService.getDiscountedCars();
     return response;
   } catch (e) {
-    print("❌ Lỗi khi tải danh sách xe ưu thích: $e");
     return [];
   }
 }
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -187,8 +187,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   width: activeIndex == index ? 12 : 8,
                   height: activeIndex == index ? 12 : 8,
                   decoration: BoxDecoration(
-                    color:
-                        activeIndex == index ? Colors.orange : Colors.grey[300],
+                    color: activeIndex == index
+                        ? Colors.orange
+                        : Colors.grey[300],
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -219,7 +220,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
           _buildCarSection('XE NỔI BẬT', futureCars, context),
           const SizedBox(height: 20),
-          _buildCarSection('XE GIẢM GIÁ', discountedCarsFuture, context, showDiscount: true),
+          _buildCarSection(
+            'XE GIẢM GIÁ',
+            discountedCarsFuture,
+            context,
+            showDiscount: true,
+          ),
           const SizedBox(height: 20),
           _buildCarSection('XE ƯU THÍCH', favoriteCarsFuture, context),
         ],
@@ -247,14 +253,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   value: 'TP. Hồ Chí Minh',
                   child: Text('TP. Hồ Chí Minh'),
                 ),
-                DropdownMenuItem(
-                  value: 'Hà Nội',
-                  child: Text('Hà Nội'),
-                ),
-                DropdownMenuItem(
-                  value: 'Đà Nẵng',
-                  child: Text('Đà Nẵng'),
-                ),
+                DropdownMenuItem(value: 'Hà Nội', child: Text('Hà Nội')),
+                DropdownMenuItem(value: 'Đà Nẵng', child: Text('Đà Nẵng')),
               ],
               onChanged: (value) => setState(() => selectedLocation = value!),
             ),
@@ -325,8 +325,10 @@ class _HomeScreenState extends State<HomeScreen> {
         );
         if (picked != null) {
           setState(() {
-            if (isStart) startDate = picked;
-            else endDate = picked;
+            if (isStart)
+              startDate = picked;
+            else
+              endDate = picked;
           });
         }
       },
@@ -341,9 +343,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Icon(icon, color: Colors.orange, size: 18),
             const SizedBox(width: 8),
             Text(
-              date == null
-                  ? label
-                  : '${date.day}/${date.month}/${date.year}',
+              date == null ? label : '${date.day}/${date.month}/${date.year}',
               style: const TextStyle(color: Colors.black87),
             ),
           ],
@@ -353,7 +353,12 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-Widget _buildCarSection(String title, Future<List<Cars>> futureCars, BuildContext context, {bool showDiscount = false}) {
+Widget _buildCarSection(
+  String title,
+  Future<List<Cars>> futureCars,
+  BuildContext context, {
+  bool showDiscount = false,
+}) {
   return Padding(
     padding: const EdgeInsets.all(16),
     child: Column(
@@ -398,14 +403,17 @@ Widget _buildCarSection(String title, Future<List<Cars>> futureCars, BuildContex
   );
 }
 
-Widget buildCarCard(Cars car, BuildContext context, {bool showDiscount = false}) {
+Widget buildCarCard(
+  Cars car,
+  BuildContext context, {
+  bool showDiscount = false,
+}) {
+  final currencyFormatter = NumberFormat.currency(locale: 'vi_VN', symbol: 'VNĐ');
   return GestureDetector(
     onTap: () {
       Navigator.push(
         context,
-        MaterialPageRoute(
-          builder: (_) => CarDetailScreen(carId: car.id),
-        ),
+        MaterialPageRoute(builder: (_) => CarDetailScreen(carId: car.id)),
       );
     },
     child: Container(
@@ -420,7 +428,9 @@ Widget buildCarCard(Cars car, BuildContext context, {bool showDiscount = false})
             Stack(
               children: [
                 ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(12),
+                  ),
                   child: Image.network(
                     car.imageUrl,
                     height: 130,
@@ -433,14 +443,17 @@ Widget buildCarCard(Cars car, BuildContext context, {bool showDiscount = false})
                     top: 8,
                     left: 8,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.redAccent,
                         borderRadius: BorderRadius.circular(6),
                       ),
-                      child: const Text(
-                        'GIẢM 20%',
-                        style: TextStyle(
+                      child: Text(
+                        "GIẢM ${car.discount}%",
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
@@ -465,7 +478,7 @@ Widget buildCarCard(Cars car, BuildContext context, {bool showDiscount = false})
                     ),
                   ),
                   Text(
-                    "Giá: ${car.pricePerDay}/ngày",
+                    "Giá: ${currencyFormatter.format(car.pricePerDay)}/ngày",
                     style: const TextStyle(color: Colors.orange, fontSize: 13),
                   ),
                 ],

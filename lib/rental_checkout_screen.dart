@@ -15,7 +15,10 @@ class _RentalCheckoutScreenState extends State<RentalCheckoutScreen> {
   DateTime? startDate;
   DateTime? endDate;
   final TextEditingController addressController = TextEditingController();
-  final formatCurrency = NumberFormat("#,###", "vi_VN");
+  final currencyFormatter = NumberFormat.currency(
+      locale: 'vi_VN',
+      symbol: 'VNĐ',
+    );
   final TextEditingController startDateController = TextEditingController();
   final TextEditingController endDateController = TextEditingController();
 
@@ -85,7 +88,7 @@ class _RentalCheckoutScreenState extends State<RentalCheckoutScreen> {
             ),
             const SizedBox(height: 10),
             Text(
-              'Giá thuê: ${formatCurrency.format(car.pricePerDay)}đ/ngày',
+              'Giá thuê: ${currencyFormatter.format(car.pricePerDay)}/ngày',
               style: const TextStyle(fontSize: 16, color: Colors.orange),
             ),
             const SizedBox(height: 24),
@@ -171,13 +174,13 @@ class _RentalCheckoutScreenState extends State<RentalCheckoutScreen> {
                       'Phí thuê xe (${_daysText()})',
                       totalCost == 0
                           ? '—'
-                          : '${formatCurrency.format((totalCost - 10000000) / 1.1)}đ',
+                          : currencyFormatter.format((totalCost - 10000000) / 1.1),
                     ),
                     _buildCostRow(
                       'Thuế VAT (10%)',
                       totalCost == 0
                           ? '—'
-                          : '${formatCurrency.format((totalCost - 10000000) * 0.1 / 1.1)}đ',
+                          : currencyFormatter.format((totalCost - 10000000) * 0.1 / 1.1),
                     ),
                     _buildCostRow('Tiền cọc', '10.000.000đ'),
                     const Divider(),
@@ -185,7 +188,7 @@ class _RentalCheckoutScreenState extends State<RentalCheckoutScreen> {
                       'Tổng cộng',
                       totalCost == 0
                           ? '—'
-                          : '${formatCurrency.format(totalCost)}đ',
+                          : currencyFormatter.format(totalCost),
                       isHighlight: true,
                     ),
                   ],

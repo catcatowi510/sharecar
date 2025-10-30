@@ -2,14 +2,12 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../model/rental_history.dart';
 import '../model/cars.dart';
-import 'package:get_storage/get_storage.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 class ApiService {
   static const String baseUrlMockup =
-      "https://68f38e35fd14a9fcc4291b81.mockapi.io"; // 🔧 Thay URL thật của bạn
+      "https://68f38e35fd14a9fcc4291b81.mockapi.io"; //
   static const String baseUrl = "http://10.0.2.2:5000"; //
-  static final _boxLogin = GetStorage();
-  static String? get token => _boxLogin.read("token");
   static Future<List<RentalHistory>> fetchRentalHistory() async {
     final url = Uri.parse("$baseUrl/share_cars/api/v1/history");
     final response = await http.get(url);
@@ -70,18 +68,27 @@ class ApiService {
 
   static Future<List<Cars>> getCars() async {
     try {
+      final box = Hive.box("login");
+      final token = box.get("token");
+
       final headers = {
         "Content-Type": "application/json",
-        if (token != null) "Authorization": "Bearer $token",
+        if (token != null && token.isNotEmpty) "Authorization": "Bearer $token",
       };
+
       final response = await http.get(
         Uri.parse("$baseUrl/api/cars"),
         headers: headers,
       );
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body);
-        return data.map((e) => Cars.fromMap(e)).toList();
+        final dynamic jsonResponse = jsonDecode(response.body);
+        final List<dynamic> carsData =
+            (jsonResponse is Map && jsonResponse.containsKey('data'))
+            ? jsonResponse['data']
+            // ✅ Nếu server trả về mảng trực tiếp
+            : (jsonResponse is List ? jsonResponse : []);
+        return carsData.map((e) => Cars.fromMap(e)).toList();
       } else {
         throw Exception("Không thể tải danh sách xe");
       }
@@ -93,25 +100,27 @@ class ApiService {
   // =============================
   // 4️⃣ Lấy chi tiết xe theo ID
   // =============================
-  static Future<Map<String, dynamic>?> getCarById(String id) async {
+  static Future<Cars?> getCarById(String id) async {
     try {
+      final box = Hive.box("login");
+      final token = box.get("token");
+
       final headers = {
         "Content-Type": "application/json",
-        if (token != null) "Authorization": "Bearer $token",
+        if (token != null && token.isNotEmpty) "Authorization": "Bearer $token",
       };
+
       final response = await http.get(
-       Uri.parse("$baseUrl/api/cars/$id"),
+        Uri.parse("$baseUrl/api/cars/$id"),
         headers: headers,
       );
-
       if (response.statusCode == 200) {
-        return jsonDecode(response.body);
+        final dynamic jsonResponse = jsonDecode(response.body);
+          return Cars.fromMap(jsonResponse["data"]);
       } else {
-        print("⚠️ Không tìm thấy xe có id: $id");
         return null;
       }
     } catch (e) {
-      print("❌ Lỗi khi gọi API getCarById: $e");
       return null;
     }
   }
@@ -121,44 +130,79 @@ class ApiService {
   // =============================
   static Future<List<Cars>> getLatestCars() async {
     try {
+      final box = Hive.box("login");
+      final token = box.get("token");
+
       final headers = {
         "Content-Type": "application/json",
-        if (token != null) "Authorization": "Bearer $token",
+        if (token != null && token.isNotEmpty) "Authorization": "Bearer $token",
       };
-      final response = await http.get(Uri.parse("$baseUrl/api/cars/latest"), headers: headers,);
+
+      final response = await http.get(
+        Uri.parse("$baseUrl/api/cars/latest"),
+        headers: headers,
+      );
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body);
-        return data.map((e) => Cars.fromMap(e)).toList();
+        final dynamic jsonResponse = jsonDecode(response.body);
+
+        // ✅ Nếu backend trả về { data: [...] }
+        final List<dynamic> carsData =
+            (jsonResponse is Map && jsonResponse.containsKey('data'))
+            ? jsonResponse['data']
+            // ✅ Nếu backend trả về mảng trực tiếp
+            : (jsonResponse is List ? jsonResponse : []);
+        return carsData.map((e) => Cars.fromMap(e)).toList();
       } else {
         throw Exception("Không thể tải danh sách xe mới nhất");
       }
     } catch (e) {
-      print("❌ Lỗi khi gọi API getLatestCars: $e");
       return [];
     }
   }
 
   static Future<List<Cars>> getDiscountedCars() async {
+    try {
+      final box = Hive.box("login");
+      final token = box.get("token");
+
       final headers = {
         "Content-Type": "application/json",
-        if (token != null) "Authorization": "Bearer $token",
+        if (token != null && token.isNotEmpty) "Authorization": "Bearer $token",
       };
-    final response = await http.get(Uri.parse('$baseUrl/api/cars/discounted'),headers:headers);
-    if (response.statusCode == 200) {
-      final List<dynamic> data = jsonDecode(response.body);
-      return data.map((e) => Cars.fromMap(e)).toList();
-    } else {
-      throw Exception('Không thể tải danh sách xe giảm giá');
+
+      final response = await http.get(
+        Uri.parse("$baseUrl/api/cars/discounted"),
+        headers: headers,
+      );
+
+      if (response.statusCode == 200) {
+        final dynamic jsonResponse = jsonDecode(response.body);
+        // ✅ Nếu backend trả về { data: [...] }
+        final List<dynamic> carsData =
+            (jsonResponse is Map && jsonResponse.containsKey('data'))
+            ? jsonResponse['data']
+            // ✅ Nếu backend trả về mảng trực tiếp
+            : (jsonResponse is List ? jsonResponse : []);
+        return carsData.map((e) => Cars.fromMap(e)).toList();
+      } else {
+        throw Exception("Không thể tải danh sách xe mới nhất");
+      }
+    } catch (e) {
+      return [];
     }
   }
 
   static Future<List<Cars>> getFavoriteCars() async {
-      final headers = {
+    final box = Hive.box("login");
+    final token = box.get("token");
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/favorites'),
+      headers: {
         "Content-Type": "application/json",
-        if (token != null) "Authorization": "Bearer $token",
-      };
-    final response = await http.get(Uri.parse('$baseUrl/api/favorites'),headers:headers);
+        "Authorization": "Bearer $token",
+      },
+    );
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       return (data['favorites'] as List)
@@ -170,8 +214,8 @@ class ApiService {
   }
 
   static Future<void> addFavorite(String carId) async {
-    final token = '';
-
+    final box = Hive.box("login");
+    final token = box.get("token");
     final response = await http.post(
       Uri.parse('$baseUrl/api/favorites/add'),
       headers: {
