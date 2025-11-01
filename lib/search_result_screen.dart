@@ -4,15 +4,6 @@ import 'car_detail_screen.dart';
 import 'services/api_service.dart';
 import 'package:intl/intl.dart';
 
-Future<List<Cars>> fetchCars() async {
-  try {
-    final response = await ApiService.getCars();
-    return response;
-  } catch (e) {
-    return [];
-  }
-}
-
 class SearchResultScreen extends StatefulWidget {
   final String location;
   final DateTime? startDate;
@@ -31,11 +22,29 @@ class SearchResultScreen extends StatefulWidget {
 
 class _SearchResultScreenState extends State<SearchResultScreen> {
   late Future<List<Cars>> futureCars;
+  String selectedLocation = "";
 
   @override
   void initState() {
     super.initState();
-    futureCars = fetchCars();
+    selectedLocation = widget.location;
+    futureCars = fetchCars({"location": selectedLocation});
+  }
+
+  Future<List<Cars>> fetchCars(Map<String, dynamic> req) async {
+    try {
+      final response = await ApiService.getCars(req);
+      return response;
+    } catch (e) {
+      print("❌ Lỗi khi fetchCars: $e");
+      return [];
+    }
+  }
+
+  void _searchCars() {
+    setState(() {
+      futureCars = fetchCars({"location": selectedLocation});
+    });
   }
 
   @override
@@ -44,6 +53,7 @@ class _SearchResultScreenState extends State<SearchResultScreen> {
       locale: 'vi_VN',
       symbol: 'VNĐ',
     );
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Kết quả tìm kiếm - ${widget.location}'),
@@ -51,136 +61,47 @@ class _SearchResultScreenState extends State<SearchResultScreen> {
       ),
       body: Column(
         children: [
-          // 🔸 Thanh tìm kiếm
+          // 🔸 Thanh lọc tìm kiếm
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 🗺 Hàng chọn địa điểm
-                Row(
-                  children: [
-                    Expanded(
-                      child: DropdownButtonFormField<String>(
-                        decoration: InputDecoration(
-                          labelText: 'Chọn địa điểm',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(
-                            vertical: 10,
-                            horizontal: 16,
-                          ),
-                        ),
-                        items: const [
-                          DropdownMenuItem(
-                            value: 'TP.HCM',
-                            child: Text('TP. Hồ Chí Minh'),
-                          ),
-                          DropdownMenuItem(
-                            value: 'Hà Nội',
-                            child: Text('Hà Nội'),
-                          ),
-                          DropdownMenuItem(
-                            value: 'Đà Nẵng',
-                            child: Text('Đà Nẵng'),
-                          ),
-                        ],
-                        onChanged: (value) {
-                          // Lưu địa điểm được chọn
-                        },
-                      ),
+                // 🗺 Dropdown chọn địa điểm
+                DropdownButtonFormField<String>(
+                  value: selectedLocation,
+                  decoration: InputDecoration(
+                    labelText: 'Chọn địa điểm',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      vertical: 10,
+                      horizontal: 16,
+                    ),
+                  ),
+                  items: const [
+                    DropdownMenuItem(value: '', child: Text('Tất cả')),
+                    DropdownMenuItem(
+                        value: 'TP. Hồ Chí Minh', child: Text('TP. Hồ Chí Minh')),
+                    DropdownMenuItem(value: 'Hà Nội', child: Text('Hà Nội')),
+                    DropdownMenuItem(value: 'Đà Nẵng', child: Text('Đà Nẵng')),
                   ],
-                ),
-
-                const SizedBox(height: 12),
-
-                // 📅 Hàng chọn ngày bắt đầu & kết thúc
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextFormField(
-                        readOnly: true,
-                        decoration: InputDecoration(
-                          labelText: 'Ngày bắt đầu',
-                          prefixIcon: const Icon(
-                            Icons.calendar_today,
-                            color: Colors.orange,
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(
-                            vertical: 10,
-                            horizontal: 16,
-                          ),
-                        ),
-                        onTap: () async {
-                          final pickedDate = await showDatePicker(
-                            context: context,
-                            initialDate: DateTime.now(),
-                            firstDate: DateTime.now(),
-                            lastDate: DateTime(2030),
-                          );
-                          if (pickedDate != null) {
-                            // Lưu ngày bắt đầu
-                          }
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: TextFormField(
-                        readOnly: true,
-                        decoration: InputDecoration(
-                          labelText: 'Ngày kết thúc',
-                          prefixIcon: const Icon(
-                            Icons.calendar_month,
-                            color: Colors.orange,
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(
-                            vertical: 10,
-                            horizontal: 16,
-                          ),
-                        ),
-                        onTap: () async {
-                          final pickedDate = await showDatePicker(
-                            context: context,
-                            initialDate: DateTime.now(),
-                            firstDate: DateTime.now(),
-                            lastDate: DateTime(2030),
-                          );
-                          if (pickedDate != null) {
-                            // Lưu ngày kết thúc
-                          }
-                        },
-                      ),
-                    ),
-                  ],
+                  onChanged: (value) {
+                    setState(() {
+                      selectedLocation = value ?? "";
+                    });
+                  },
                 ),
 
                 const SizedBox(height: 16),
 
-                // 🔶 Nút tìm xe phù hợp
+                // 🔶 Nút tìm kiếm
                 SizedBox(
                   width: double.infinity,
                   height: 50,
                   child: ElevatedButton.icon(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => SearchResultScreen(
-                            location:
-                                'TP.HCM', // có thể thay bằng địa điểm người dùng chọn
-                          ),
-                        ),
-                      );
-                    },
+                    onPressed: _searchCars,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.orange,
                       shape: RoundedRectangleBorder(
@@ -202,24 +123,21 @@ class _SearchResultScreenState extends State<SearchResultScreen> {
             ),
           ),
 
-          // 📋 Danh sách kết quả
+          // 📋 Danh sách xe kết quả
           Expanded(
             child: FutureBuilder<List<Cars>>(
               future: futureCars,
               builder: (context, snapshot) {
-                // Handling different connection states
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Center(
+                      child: CircularProgressIndicator(color: Colors.orange));
                 } else if (snapshot.hasError) {
                   return Center(child: Text('Lỗi: ${snapshot.error}'));
                 } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  // Check if data is null or empty
                   return const Center(child: Text('Không tìm thấy xe phù hợp'));
                 }
 
-                // Successfully fetched data
                 final cars = snapshot.data!;
-
                 return ListView.builder(
                   itemCount: cars.length,
                   padding: const EdgeInsets.all(12),

@@ -1,21 +1,32 @@
 import 'package:flutter/material.dart';
+import 'services/api_service.dart';
+import 'model/user.dart';
 
 class EditProfileScreen extends StatefulWidget {
-  const EditProfileScreen({super.key});
+  final User? user;
+
+  const EditProfileScreen({super.key, required this.user});
 
   @override
   State<EditProfileScreen> createState() => _EditProfileScreenState();
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-  final TextEditingController nameController =
-      TextEditingController(text: "Nguyễn Văn A");
-  final TextEditingController emailController =
-      TextEditingController(text: "nguyenvana@example.com");
-  final TextEditingController phoneController =
-      TextEditingController(text: "0901234567");
-  final TextEditingController yearController =
-      TextEditingController(text: "1995");
+  final TextEditingController nameController = TextEditingController(text: "");
+  final TextEditingController emailController = TextEditingController(text: "");
+  final TextEditingController phoneController = TextEditingController(text: "");
+  final TextEditingController yearController = TextEditingController(text: "");
+  @override
+  void initState() {
+    super.initState();
+    if (widget.user != null) {
+      nameController.text = widget.user!.name;
+      emailController.text = widget.user!.email;
+      phoneController.text = widget.user!.phone;
+      yearController.text = widget.user!.birthYear?.toString() ?? "";
+      gender = widget.user!.gender ?? "";
+    }
+  }
 
   String gender = "Nam";
 
@@ -39,8 +50,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 children: [
                   const CircleAvatar(
                     radius: 50,
-                    backgroundImage:
-                        AssetImage('assets/images/avatar_default.png'),
+                    backgroundImage: AssetImage(
+                      'assets/images/avatar_default.png',
+                    ),
                   ),
                   Container(
                     decoration: BoxDecoration(
@@ -75,16 +87,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               controller: emailController,
               keyboardType: TextInputType.emailAddress,
               decoration: _inputDecoration("Nhập email"),
-            ),
-            const SizedBox(height: 16),
-
-            // Số điện thoại
-            const Text("Số điện thoại"),
-            const SizedBox(height: 6),
-            TextField(
-              controller: phoneController,
-              keyboardType: TextInputType.phone,
-              decoration: _inputDecoration("Nhập số điện thoại"),
             ),
             const SizedBox(height: 16),
 
@@ -127,14 +129,43 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   "Lưu thay đổi",
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
-                onPressed: () {
-                  // 🧠 Gọi API cập nhật thông tin (sau này)
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text("✅ Cập nhật thông tin thành công"),
-                    ),
-                  );
-                  Navigator.pop(context);
+                onPressed: () async {
+                  final user = {
+                    "name": nameController.text,
+                    "email": emailController.text,
+                    "birthYear": int.tryParse(yearController.text),
+                    "gender": gender,
+                  };
+
+                  try {
+                    final success = await ApiService.updateProfile(user);
+
+                    if (success) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text("✅ Cập nhật thông tin thành công"),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                      Navigator.pop(context, true); // Trả về true để reload
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            "❌ Cập nhật thất bại, vui lòng thử lại",
+                          ),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text("Lỗi: $e"),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
                 },
               ),
             ),
@@ -168,9 +199,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return InputDecoration(
       hintText: hint,
       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(10),
-      ),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
       focusedBorder: const OutlineInputBorder(
         borderSide: BorderSide(color: Colors.orange, width: 2),
       ),

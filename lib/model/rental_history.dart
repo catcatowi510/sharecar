@@ -1,44 +1,62 @@
 class RentalHistory {
   final String id;
-  final String carName;
-  final String imageUrl;
+  final String userName;
   final String rentalDate;
-  final String price;
+  final String startDate;
+  final String endDate;
+  final int duration;
+  final String pickupLocation;
   final String status;
-
-  // ✅ Thêm trường mở rộng (tùy chọn)
-  final String? duration; // Thời gian thuê (ví dụ: "2 ngày 4 giờ")
-  final String? pickupLocation; // Địa điểm nhận xe
-  final String? returnLocation; // Địa điểm trả xe
-  final String? description; // Ghi chú thêm nếu cần
-
+  final int price;
+  final String? imageUrl;
+  final String? carName;
+  final int statusPayment;
   RentalHistory({
     required this.id,
-    required this.carName,
-    required this.imageUrl,
+    required this.userName,
     required this.rentalDate,
-    required this.price,
+    required this.startDate,
+    required this.endDate,
+    required this.duration,
+    required this.pickupLocation,
     required this.status,
-    this.duration,
-    this.pickupLocation,
-    this.returnLocation,
-    this.description,
+    required this.price,
+    this.imageUrl,
+    this.carName,
+    required this.statusPayment,
   });
 
   factory RentalHistory.fromJson(Map<String, dynamic> json) {
     return RentalHistory(
-      id: json['id'] ?? '',
-      carName: json['carName'] ?? 'Không rõ',
-      imageUrl: json['imageUrl'] ?? '',
-      rentalDate: json['rentalDate'] ?? '',
-      price: json['price'] ?? '0',
-      status: json['status'] ?? 'Chưa rõ',
-
-      // ✅ Trường mở rộng
-      duration: json['duration'] ?? 'Không xác định',
+      id: json['_id'] ?? '',
+      userName: json['user'] != null ? json['user']['name'] ?? 'Không rõ' : 'Không rõ',
+      rentalDate: json['createdAt'] ?? '',
+      startDate: json['startDate'] ?? '',
+      endDate: json['endDate'] ?? '',
+      duration: json['duration'] ?? 0,
       pickupLocation: json['pickupLocation'] ?? 'Không có thông tin',
-      returnLocation: json['returnLocation'] ?? 'Không có thông tin',
-      description: json['description'] ?? '',
+      status: json['status'] ?? 'Không rõ',
+      price: json['price'] ?? 0,
+      imageUrl: json['car'] != null ? json['car']['imageUrl'] ?? 'Không rõ' : 'Không rõ',
+      carName: json['car'] != null ? json['car']['name'] ?? 'Không rõ' : 'Không rõ',
+      statusPayment: json['statusPayment'] ?? 1,
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      '_id': id,
+      'userName': userName,
+      'rentalDate': rentalDate,
+      'startDate': startDate,
+      'endDate': endDate,
+      'duration': duration,
+      'pickupLocation': pickupLocation,
+      'status': status,
+      'price': price,
+      'imageUrl': imageUrl,
+      'carName': carName,
+      'statusPayment': statusPayment,
+    };
   }
 }

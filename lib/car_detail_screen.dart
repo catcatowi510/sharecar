@@ -50,7 +50,10 @@ class _CarDetailScreenState extends State<CarDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-  final currencyFormatter = NumberFormat.currency(locale: 'vi_VN', symbol: 'VNĐ');
+    final currencyFormatter = NumberFormat.currency(
+      locale: 'vi_VN',
+      symbol: 'VNĐ',
+    );
     return Scaffold(
       appBar: AppBar(
         title: Text(car?.name ?? 'Chi tiết xe'),
@@ -59,129 +62,197 @@ class _CarDetailScreenState extends State<CarDetailScreen> {
       body: isLoading
           ? const Center(child: CircularProgressIndicator(color: Colors.orange))
           : hasError || car == null
-              ? const Center(
-                  child: Text(
-                    'Không thể tải thông tin xe.',
-                    style: TextStyle(color: Colors.red),
-                  ),
-                )
-              : SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // 🎞 Banner ảnh chi tiết xe
-                      if (car!.imageDetails.isNotEmpty)
-                        _buildImageCarousel(car!.imageDetails)
-                      else
-                        _buildSingleImage(car!.imageUrl),
+          ? const Center(
+              child: Text(
+                'Không thể tải thông tin xe.',
+                style: TextStyle(color: Colors.red),
+              ),
+            )
+          : SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 🎞 Banner ảnh chi tiết xe
+                  if (car!.imageDetails.isNotEmpty)
+                    _buildImageCarousel(car!.imageDetails)
+                  else
+                    _buildSingleImage(car!.imageUrl),
 
-                      // 🧾 Thông tin chi tiết xe
-                      Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              car!.name,
-                              style: const TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              "Giá thuê: ${currencyFormatter.format(car!.pricePerDay)}/ngày",
-                              style: const TextStyle(
-                                color: Colors.orange,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            Row(
-                              children: [
-                                const Icon(Icons.event_seat, color: Colors.grey),
-                                const SizedBox(width: 8),
-                                Text("${car!.seat} chỗ",
-                                    style: const TextStyle(fontSize: 16)),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                const Icon(Icons.category, color: Colors.grey),
-                                const SizedBox(width: 8),
-                                Text("Loại xe: ${car!.type}",
-                                    style: const TextStyle(fontSize: 16)),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                const Icon(Icons.local_gas_station,
-                                    color: Colors.grey),
-                                const SizedBox(width: 8),
-                                Text("Nhiên liệu: ${car!.fuel}",
-                                    style: const TextStyle(fontSize: 16)),
-                              ],
-                            ),
-                            const SizedBox(height: 16),
-                            const Text(
-                              "Mô tả xe:",
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              car!.description.isNotEmpty
-                                  ? car!.description
-                                  : "Xe chưa có mô tả chi tiết.",
-                              style: const TextStyle(fontSize: 16, height: 1.4),
-                            ),
-                            const SizedBox(height: 24),
-                            Center(
-                              child: ElevatedButton.icon(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.orange,
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 40,
-                                    vertical: 14,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                ),
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          RentalCheckoutScreen(car: car!),
+                  // 🧾 Thông tin chi tiết xe
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          car!.name,
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+
+                        if (car!.discount! > 0) ...[
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // 🔸 Dòng 1: Giá gốc + giảm %
+                              Row(
+                                children: [
+                                  Text(
+                                    "Giá gốc: ",
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
                                     ),
-                                  );
-                                },
-                                icon: const Icon(
-                                  Icons.car_rental,
-                                  color: Colors.white,
-                                ),
-                                label: const Text(
-                                  'Thuê xe ngay',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
                                   ),
+                                  Text(
+                                    "${currencyFormatter.format(car!.pricePerDay)}",
+                                    style: const TextStyle(
+                                      color: Colors.grey,
+                                      fontSize: 14,
+                                      decoration: TextDecoration.lineThrough,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 6,
+                                      vertical: 2,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.redAccent,
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Text(
+                                      "-${car!.discount}%",
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+
+                              // 🔸 Dòng 2: Giá sau giảm
+                              Text(
+                                "Giá thuê: ${currencyFormatter.format(car!.pricePerDay * (1 - car!.discount! / 100))}/ngày",
+                                style: const TextStyle(
+                                  color: Colors.orange,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
+                            ],
+                          ),
+                        ] else ...[
+                          // 🔸 Không có giảm giá
+                          Text(
+                            "Giá thuê: ${currencyFormatter.format(car!.pricePerDay)}/ngày",
+                            style: const TextStyle(
+                              color: Colors.orange,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            const Icon(Icons.event_seat, color: Colors.grey),
+                            const SizedBox(width: 8),
+                            Text(
+                              "${car!.seat} chỗ",
+                              style: const TextStyle(fontSize: 16),
                             ),
                           ],
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            const Icon(Icons.category, color: Colors.grey),
+                            const SizedBox(width: 8),
+                            Text(
+                              "Loại xe: ${car!.type}",
+                              style: const TextStyle(fontSize: 16),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.local_gas_station,
+                              color: Colors.grey,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              "Nhiên liệu: ${car!.fuel}",
+                              style: const TextStyle(fontSize: 16),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        const Text(
+                          "Mô tả xe:",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          car!.description.isNotEmpty
+                              ? car!.description
+                              : "Xe chưa có mô tả chi tiết.",
+                          style: const TextStyle(fontSize: 16, height: 1.4),
+                        ),
+                        const SizedBox(height: 24),
+                        Center(
+                          child: ElevatedButton.icon(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.orange,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 40,
+                                vertical: 14,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      RentalCheckoutScreen(car: car!),
+                                ),
+                              );
+                            },
+                            icon: const Icon(
+                              Icons.car_rental,
+                              color: Colors.white,
+                            ),
+                            label: const Text(
+                              'Thuê xe ngay',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
+                ],
+              ),
+            ),
     );
   }
 
@@ -252,10 +323,18 @@ class _CarDetailScreenState extends State<CarDetailScreen> {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16),
         child: _isNetworkImage(img)
-            ? Image.network(img,
-                fit: BoxFit.cover, width: double.infinity, height: 250)
-            : Image.asset(img,
-                fit: BoxFit.cover, width: double.infinity, height: 250),
+            ? Image.network(
+                img,
+                fit: BoxFit.cover,
+                width: double.infinity,
+                height: 250,
+              )
+            : Image.asset(
+                img,
+                fit: BoxFit.cover,
+                width: double.infinity,
+                height: 250,
+              ),
       ),
     );
   }

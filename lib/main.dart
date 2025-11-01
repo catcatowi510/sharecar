@@ -9,6 +9,7 @@ import 'services/api_service.dart';
 
 void main() async {
   await _initHive();
+  WidgetsFlutterBinding.ensureInitialized(); // ✅ bắt buộc trước runApp()
   runApp(const ShareCarApp());
 }
 

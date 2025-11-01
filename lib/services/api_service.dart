@@ -2,36 +2,14 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../model/rental_history.dart';
 import '../model/cars.dart';
+import '../model/user.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 class ApiService {
-  static const String baseUrlMockup =
-      "https://68f38e35fd14a9fcc4291b81.mockapi.io"; //
-  static const String baseUrl = "http://10.0.2.2:5000"; //
-  static Future<List<RentalHistory>> fetchRentalHistory() async {
-    final url = Uri.parse("$baseUrl/share_cars/api/v1/history");
-    final response = await http.get(url);
-
-    if (response.statusCode == 200) {
-      final List<dynamic> data = jsonDecode(response.body);
-      return data.map((e) => RentalHistory.fromJson(e)).toList();
-    } else {
-      throw Exception("Lỗi tải dữ liệu lịch sử: ${response.statusCode}");
-    }
-  }
-
-  static Future<RentalHistory> fetchRentalDetail(String id) async {
-    final response = await http.get(
-      Uri.parse('$baseUrl/share_cars/api/v1/history/$id'),
-    );
-
-    if (response.statusCode == 200) {
-      final json = jsonDecode(response.body);
-      return RentalHistory.fromJson(json);
-    } else {
-      throw Exception('Không thể tải chi tiết thuê xe');
-    }
-  }
+  //static const String baseUrlMockup = "https://68f38e35fd14a9fcc4291b81.mockapi.io"; //
+  //static const String baseUrl = "http://10.0.2.2:5000"; //
+  static const String baseUrl =
+      "https://psychologically-nonpatterned-leonila.ngrok-free.dev"; //
 
   static Future<Map<String, dynamic>> login(
     String phone,
@@ -66,7 +44,7 @@ class ApiService {
     return jsonDecode(response.body);
   }
 
-  static Future<List<Cars>> getCars() async {
+  static Future<List<Cars>> getCars(queryParams) async {
     try {
       final box = Hive.box("login");
       final token = box.get("token");
@@ -76,11 +54,12 @@ class ApiService {
         if (token != null && token.isNotEmpty) "Authorization": "Bearer $token",
       };
 
-      final response = await http.get(
-        Uri.parse("$baseUrl/api/cars"),
-        headers: headers,
-      );
+      // Dùng Uri để build URL an toàn
+      final uri = Uri.parse(
+        "$baseUrl/api/cars",
+      ).replace(queryParameters: queryParams);
 
+      final response = await http.get(uri, headers: headers);
       if (response.statusCode == 200) {
         final dynamic jsonResponse = jsonDecode(response.body);
         final List<dynamic> carsData =
@@ -116,7 +95,7 @@ class ApiService {
       );
       if (response.statusCode == 200) {
         final dynamic jsonResponse = jsonDecode(response.body);
-          return Cars.fromMap(jsonResponse["data"]);
+        return Cars.fromMap(jsonResponse["data"]);
       } else {
         return null;
       }
@@ -213,20 +192,183 @@ class ApiService {
     }
   }
 
-  static Future<void> addFavorite(String carId) async {
+  static Future<bool> toggleFavorite(Cars car) async {
+    try {
+      final box = Hive.box("login");
+      final token = box.get("token");
+
+      final headers = {
+        "Content-Type": "application/json",
+        if (token != null && token.isNotEmpty) "Authorization": "Bearer $token",
+      };
+
+      final url = Uri.parse("$baseUrl/api/favorites/${car.id}");
+
+      http.Response response;
+      if (car.isFavorite) {
+        // ❌ Bỏ yêu thích
+        response = await http.delete(url, headers: headers);
+      } else {
+        // ❤️ Thêm yêu thích
+        response = await http.post(url, headers: headers);
+      }
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return true;
+      } else {
+        print("Lỗi toggleFavorite: ${response.body}");
+        return false;
+      }
+    } catch (e) {
+      print("Lỗi toggleFavorite: $e");
+      return false;
+    }
+  }
+
+  static Future<List<RentalHistory>> fetchRentalHistory() async {
+    try {
+      final box = Hive.box("login");
+      final token = box.get("token");
+
+      final headers = {
+        "Content-Type": "application/json",
+        if (token != null && token.isNotEmpty) "Authorization": "Bearer $token",
+      };
+
+      final url = Uri.parse("$baseUrl/api/rental");
+      final response = await http.get(url, headers: headers);
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+
+        // ✅ Kiểm tra nếu có trường "data"
+        if (responseData["data"] != null) {
+          final List<dynamic> data = responseData["data"];
+          return data.map((e) => RentalHistory.fromJson(e)).toList();
+        } else {
+          throw Exception("Không có trường 'data' trong phản hồi API");
+        }
+      } else {
+        throw Exception("Lỗi tải dữ liệu lịch sử: ${response.statusCode}");
+      }
+    } catch (e) {
+      return [];
+    }
+  }
+
+  static Future<RentalHistory> fetchRentalDetail(String id) async {
+    try {
+      final box = Hive.box("login");
+      final token = box.get("token");
+
+      final headers = {
+        "Content-Type": "application/json",
+        if (token != null && token.isNotEmpty) "Authorization": "Bearer $token",
+      };
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/rental/$id'),
+        headers: headers,
+      );
+
+      if (response.statusCode == 200) {
+        final dynamic json = jsonDecode(response.body);
+        return RentalHistory.fromJson(json["data"]);
+      } else {
+        throw Exception('Không thể tải chi tiết thuê xe');
+      }
+    } catch (e) {
+      throw Exception('Không thể tải chi tiết thuê xe');
+    }
+  }
+
+  static Future<Map<String, dynamic>> createpaymentVNPay(body) async {
     final box = Hive.box("login");
     final token = box.get("token");
     final response = await http.post(
-      Uri.parse('$baseUrl/api/favorites/add'),
+      Uri.parse('$baseUrl/api/rental/payment/vnpay'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
       },
-      body: json.encode({'carId': carId}),
+      body: json.encode(body),
     );
+    return jsonDecode(response.body);
+  }
 
-    if (response.statusCode != 200) {
-      throw Exception('Không thể thêm xe vào danh sách yêu thích');
+  static Future<bool> cancelRental(id) async {
+    final box = Hive.box("login");
+    final token = box.get("token");
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/rental/status'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: json.encode({"id": id, "status": "Đã hủy"}),
+    );
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return true;
+    } else {
+      print("Lỗi toggleFavorite: ${response.body}");
+      return false;
+    }
+  }
+  static Future<User?> getProfile() async {
+    try {
+      final box = Hive.box("login");
+      final token = box.get("token");
+
+      final headers = {
+        "Content-Type": "application/json",
+        if (token != null && token.isNotEmpty) "Authorization": "Bearer $token",
+      };
+
+      final response = await http.get(
+        Uri.parse("$baseUrl/api/user/profile"),
+        headers: headers,
+      );
+      if (response.statusCode == 200) {
+        final dynamic jsonResponse = jsonDecode(response.body);
+        return User.fromJson(jsonResponse["data"]);
+      } else {
+        return null;
+      }
+    } catch (e) {
+      return null;
+    }
+  }
+  static Future<bool> updateProfile(body) async {
+    final box = Hive.box("login");
+    final token = box.get("token");
+    final response = await http.put(
+      Uri.parse('$baseUrl/api/user/profile'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: json.encode(body),
+    );
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+  static Future<bool> changePass(body) async {
+    final box = Hive.box("login");
+    final token = box.get("token");
+    final response = await http.put(
+      Uri.parse('$baseUrl/api/user/change-password'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: json.encode(body),
+    );
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return true;
+    } else {
+      return false;
     }
   }
 }

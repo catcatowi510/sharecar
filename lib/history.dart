@@ -14,7 +14,7 @@ class HistoryScreen extends StatefulWidget {
 class _HistoryScreenState extends State<HistoryScreen> {
   late Future<List<RentalHistory>> futureHistory;
   final NumberFormat formatCurrency = NumberFormat("#,##0", "vi_VN");
-
+  final dateFormat = DateFormat('dd/MM/yyyy');
   @override
   void initState() {
     super.initState();
@@ -83,18 +83,25 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: ListTile(
-                  onTap: () {
-                    Navigator.push(
+                  onTap: () async {
+                    final result = await Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (_) => HistoryDetailScreen(rentalId: item.id),
                       ),
                     );
+
+                    if (result == true) {
+                      setState(() {
+                        futureHistory =
+                            ApiService.fetchRentalHistory(); // ✅ gọi lại API
+                      });
+                    }
                   },
                   leading: ClipRRect(
                     borderRadius: BorderRadius.circular(8),
                     child: Image.network(
-                      item.imageUrl,
+                      item.imageUrl!,
                       width: 70,
                       height: 70,
                       fit: BoxFit.cover,
@@ -107,10 +114,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     ),
                   ),
                   title: Text(
-                    item.carName,
+                    item.carName!,
                     style: const TextStyle(fontWeight: FontWeight.w600),
                   ),
-                  subtitle: Text("${item.rentalDate} - $priceText"),
+                  subtitle: Text(
+                    "${dateFormat.format(DateTime.parse(item.rentalDate))} - $priceText",
+                  ),
                   trailing: Text(
                     item.status,
                     style: TextStyle(

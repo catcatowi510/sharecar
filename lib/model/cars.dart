@@ -11,6 +11,7 @@ class Cars {
   final String? fuel;
   final int quantity;
   final int? discount;
+  bool isFavorite;
 
   Cars({
     required this.id,
@@ -25,6 +26,7 @@ class Cars {
     this.fuel,
     required this.quantity,
     this.discount,
+    this.isFavorite = false,
   });
 
   factory Cars.fromMap(Map<String, dynamic> json) {
@@ -41,6 +43,7 @@ class Cars {
       fuel: json['fuel'],
       quantity: json['quantity'] ?? 0,
       discount: json['discount'] ?? 0,
+      isFavorite: json['isFavorite'] ?? false,
     );
   }
 }

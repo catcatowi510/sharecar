@@ -44,6 +44,9 @@ dependencies:
   flutter_localization: ^0.3.3
   flutter_launcher_icons: ^0.14.4
   package_info_plus: ^9.0.0
+  webview_flutter: ^4.13.0
+  webview_flutter_android: 4.10.5
+  webview_flutter_wkwebview: ^3.11.0
 
 dev_dependencies:
   flutter_test:
