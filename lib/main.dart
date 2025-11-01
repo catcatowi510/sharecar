@@ -9,7 +9,7 @@ import 'services/api_service.dart';
 
 void main() async {
   await _initHive();
-  WidgetsFlutterBinding.ensureInitialized(); // ✅ bắt buộc trước runApp()
+  WidgetsFlutterBinding.ensureInitialized(); //
   runApp(const ShareCarApp());
 }
 
@@ -495,33 +495,35 @@ class _RegisterState extends State<RegisterScreen> {
   setState(() => _loading = false);
 
   if (result["success"] == true) {
-    // Hiển thị thông báo đăng ký thành công
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("Đăng ký thành công! Vui lòng đăng nhập."),
-        backgroundColor: Colors.green,
-      ),
-    );
+  // ✅ Hiển thị thông báo đăng ký thành công
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(
+      content: Text("🎉 Đăng ký thành công! Vui lòng đăng nhập."),
+      backgroundColor: Colors.green,
+      behavior: SnackBarBehavior.floating,
+    ),
+  );
 
-    // Chờ 1 giây để người dùng đọc thông báo rồi chuyển sang màn hình đăng nhập
-    await Future.delayed(const Duration(seconds: 1));
+  // ⏳ Chờ 1 giây cho người dùng đọc thông báo
+  await Future.delayed(const Duration(seconds: 1));
 
-    // Chuyển màn hình
-    if (mounted) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const LoginScreen()),
-      );
-    }
-  } else {
-    // Nếu thất bại, hiện lỗi
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(result["message"] ?? "Đăng ký thất bại."),
-        backgroundColor: Colors.red,
-      ),
-    );
-  }
+  // ⚠️ Kiểm tra context còn tồn tại trước khi điều hướng
+  if (!context.mounted) return;
+
+  // ✅ Chuyển sang màn hình đăng nhập, xóa stack cũ
+  Navigator.pushReplacement(
+    context,
+    MaterialPageRoute(builder: (_) => const LoginScreen()),
+  );
+} else {
+  // ❌ Thông báo thất bại
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text(result["message"] ?? "Đăng ký thất bại!"),
+      backgroundColor: Colors.red,
+    ),
+  );
+}
 }
 
   @override
